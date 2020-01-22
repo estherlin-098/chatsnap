@@ -4,18 +4,18 @@ import NamePicker from './namePicker.js'
 
 function App() {
   const [messages, setMessages] = useState([]) //put in the initial value in the () message = []-empty array, (variable, function that use to change the variable)
-  console.log(messages)
+
   return <main>
   
     <header>
-      <div style={{display:'flex',alignItems:'center'}}>
+    <div className="logo-wrap">
         <img className="logo"
           alt="logo"
-          src="https://www.plantronics.com/etc/designs/plantronics/clientlib-all/img/poly-logo.png"
+          src="https://images.coollogo.com/images/prism-large-green.png" 
         />
         Chatter
       </div>
-        <NamePicker onSave={name=>{}}/>
+      <NamePicker onSave={name=>{}} />
     </header>
   
   <div className={"messages"}>
