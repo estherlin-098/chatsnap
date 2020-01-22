@@ -1,9 +1,19 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import './App.css';
 import NamePicker from './namePicker.js'
+import {db} from './db.js'
 
 function App() {
   const [messages, setMessages] = useState([]) //put in the initial value in the () message = []-empty array, (variable, function that use to change the variable)
+  const [name, setName] = useState('')
+
+  useEffect(()=>{ //anytime there is a new receive function, give it an array of message
+    db.listen({
+      receive: m=> {
+        setMessages(current=> [m, ...current])
+      },
+    })
+  }, [])
 
   return <main>
   
@@ -15,20 +25,22 @@ function App() {
         />
         Chatter
       </div>
-      <NamePicker onSave={name=>{}} />
+      <NamePicker onSave={setName} />
     </header>
   
   <div className={"messages"}>
     {messages.map((m,i)=>{
          return <div key={i} className="message-wrap">
-         <div className="message">{m}</div>
+         <div className="message">{m.text}</div>
       </div>
   })} 
   </div>
     
   
     <TextInput onSend={(text)=> {
-      setMessages([text, ...messages]) //take all the message in the array and put it to the array, add a new item at the beginning, 'function ()'
+      db.send({
+        text, name, ts: new Date(),
+      })
     }} /> 
   
   </main>
@@ -36,7 +48,7 @@ function App() {
  
  function TextInput(props) {
    const [text,setText] = useState('') //const[variable,function]
- 
+
    return <div className = "text-input" >
      <input value={text} //control Component
      placeholder = "Write your message" 
