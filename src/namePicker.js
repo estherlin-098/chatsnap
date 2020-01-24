@@ -8,21 +8,25 @@ function NamePicker (props) {
     const inputEl = useRef(null)
 
     function save(){
+      setTimeout(()=>{
         inputEl.current.focus()
-        if(name && !showName) {
-          props.onSave(name)
-          localStorage.setItem('name',name)
-        }
-        setShowName(!showName)
+      },50)
+      if(name && !showName) {
+        props.onSave(name)
+        localStorage.setItem('name',name)
       }
+      setShowName(!showName)
+    }
 
-      useEffect(()=>{
-        const n = localStorage.getItem('name')
-        if(n) {
-          setName(n)
-          save() 
-        }
-      }, [])
+    useEffect(()=>{
+      const n = localStorage.getItem('name')
+      if(n) {
+        setName(n)
+        setTimeout(()=>{
+          save()
+        },50)
+      }
+    }, [])
 
     return <div className = "edit-username">
         <input value={name} ref={inputEl}
@@ -36,11 +40,9 @@ function NamePicker (props) {
 
         {showName && <div>{name}</div>}
 
-        <button className = "name-button"
-            onClick={save}
-        > 
-            {showName ? <FiEdit /> : <FiSave />}
-        </button>
-    </div>
+        <button onClick={save} className="name-button">
+      {showName ? <FiEdit /> : <FiSave />}
+    </button>
+  </div>
 }
 export default NamePicker

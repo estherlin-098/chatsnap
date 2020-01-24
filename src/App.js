@@ -1,19 +1,26 @@
 import React, {useState, useEffect} from 'react';
 import './App.css';
 import NamePicker from './namePicker.js'
-import {db} from './db.js'
+import {db, useDB} from './db.js'
+import {BrowserRouter, Route} from 'react-router-dom'
 
 function App() {
-  const [messages, setMessages] = useState([]) //put in the initial value in the () message = []-empty array, (variable, function that use to change the variable)
-  const [name, setName] = useState('')
+  useEffect(()=>{ //run this only one time when starting it
+    const {pathname} = window.location
+    if(pathname.length<2) window.location.pathname='home'
+  },[])
 
-  useEffect(()=>{ //anytime there is a new receive function, give it an array of message
-    db.listen({
-      receive: m=> {
-        setMessages(current=> [m, ...current])
-      },
-    })
-  }, [])
+  return <BrowserRouter>
+    <Route path="/:room" component={Room} />
+  </BrowserRouter>
+}
+
+
+function Room(props) {
+  //const [messages, setMessages] = useState([]) //put in the initial value in the () message = []-empty array, (variable, function that use to change the variable)
+  const {room} = props.match.params
+  const [name, setName] = useState('')
+  const messages = useDB(room) //takes an argument
 
   return <main>
   
@@ -28,18 +35,21 @@ function App() {
       <NamePicker onSave={setName} />
     </header>
   
-  <div className={"messages"}>
-    {messages.map((m,i)=>{
-         return <div key={i} className="message-wrap">
-         <div className="message">{m.text}</div>
-      </div>
-  })} 
-  </div>
+    <div className="messages">
+      {messages.map((m,i)=>{
+        return <div key={i} className="message-wrap"
+          from={m.name===name?'me':'you'}> 
+          <div className="message">
+            <div className="msg-name">{m.name}</div>
+            <div className="msg-text">{m.text}</div>
+          </div>
+        </div>
+      })}
+    </div>
     
-  
     <TextInput onSend={(text)=> {
       db.send({
-        text, name, ts: new Date(),
+        text, name, ts: new Date(), room
       })
     }} /> 
   
