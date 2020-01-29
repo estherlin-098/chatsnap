@@ -1,10 +1,15 @@
 import React, {useState, useEffect} from 'react';
 import './App.css';
+import './media.css'
 import NamePicker from './namePicker.js'
 import {db, useDB} from './db.js'
 import {BrowserRouter, Route} from 'react-router-dom'
-import { FiSend, FiCamera } from 'react-icons/fi'
+import {FiCamera} from 'react-icons/fi'
 import Camera from 'react-snap-pic'
+import "firebase/storage"
+import * as firebase from "firebase/app"
+import Div100vh from 'react-div-100vh'
+
 
 function App() {
   useEffect(()=>{ //run this only one time when starting it
@@ -21,18 +26,21 @@ function Room(props) {
   //const [messages, setMessages] = useState([]) //put in the initial value in the () message = []-empty array, (variable, function that use to change the variable)
   const {room} = props.match.params
   const [name, setName] = useState('')
-  const messages = useDB(room) //takes an argument
   const [showCamera, setShowCamera] = useState(false)
+  const messages = useDB(room) //takes an argument
   
-  function takePicture() {
-    takePicture = (img) => {
-    console.log(img)
+  async function takePicture(img) { //async - you can use await, wait the line to be done and then move on
     setShowCamera(false)
+    const imgID = Math.random().toString(36).substring(7)
+    var storageRef = firebase.storage().ref()
+    var ref = storageRef.child(imgID + '.jpg')
+    await ref.putString(img, 'data_url')
+    db.send({ img: imgID, name, ts: new Date(), room })
   }
-} 
-  return <main>
 
-    {showCamera && <Camera takePicture={takePicture} />}
+  return <Div100vh>
+
+    {showCamera && <Camera takePicture={takePicture} />} 
 
     <header>
     <div className="logo-wrap">
@@ -40,35 +48,46 @@ function Room(props) {
           alt="logo"
           src="https://images.coollogo.com/images/prism-large-green.png" 
         />
-        Chatter
+        Chatsnap
       </div>
       <NamePicker onSave={setName} />
     </header>
   
     <div className="messages">
-      {messages.map((m,i)=>{
-        return <div key={i} className="message-wrap"
-          from={m.name===name?'me':'you'}> 
-          <div className="message">
-            <div className="msg-name">{m.name}</div>
-            <div className="msg-text">{m.text}</div>
-          </div>
-        </div>
-      })}
+      {messages.map((m,i)=><Message key={i} 
+      m={m} name={name} 
+      />)}
     </div>
     
-    <TextInput onSend={(text)=> {
+    <TextInput showCamera={()=>setShowCamera(true)} 
+    onSend={(text)=> {
       db.send({
         text, name, ts: new Date(), room
       })
-    }} /> 
+    }} 
+    /> 
 
-    <TextInput sendMessage={text=> props.onSend(text)} 
-     showCamera={()=>setShowCamera(true)}
-    />
-  </main>
+
+  </Div100vh>
  }
  
+ const bucket = 'https://firebasestorage.googleapis.com/v0/b/chatapp-esther.appspot.com/o/'
+ const suffix = '.jpg?alt=media'
+
+ function Message({m,name}) {
+  return <div className="message-wrap"
+    from={m.name===name?'me':'you'} 
+    onClick={()=>console.log(m)}>
+    <div className="message">
+      <div className="msg-name">{m.name}</div>
+      <div className="msg-text">
+        {m.text}
+        {m.img && <img src={bucket + m.img + suffix} alt="pic" />}
+      </div>
+    </div>
+  </div>
+ }
+
  function TextInput(props) {
    const [text,setText] = useState('') //const[variable,function]
   
@@ -76,7 +95,7 @@ function Room(props) {
 
      <button 
       onClick={props.showCamera}
-       style={{left:10, right:'auto'}}>
+       style={{position: 'relative', left:0, right:'auto'}}>
        <FiCamera style={{height:22, width:22}} />
      </button>
      
