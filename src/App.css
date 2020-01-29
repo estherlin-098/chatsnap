@@ -65,19 +65,22 @@
  }
  
  .text-input input, button{
-   height: 80%;
    margin: 0 auto;
  }
  
- .button {
-   margin-left: 3px;
+ .text-input>input {
+  width:calc(100% - 50px);
+}
+
+ .text-input button {
    margin-top: 4px;
    border: 0;
    border-radius: 60px;
    background: none;
+   height: 24px;
  }
 
- .button:disabled{
+ .text-input button:disabled{
    color: grey;
  }
  
